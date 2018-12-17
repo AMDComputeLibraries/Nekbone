@@ -10,6 +10,9 @@ Nek5000.
 CUDA/OpenACC Branch
 -------------------
 
+NOTE:  This project is a fork of the Nekbone to support AMD GPUs when
+compiling with the Mentor Graphics compiler.
+
 The CUDA/OpenACC branch contains GPU implementations of the conjugate gradient
 solver. This includes a pure OpenACC implementation as well as a hybrid
 OpenACC/CUDA implementation with a CUDA kernel for matrix-vector multiplication,
