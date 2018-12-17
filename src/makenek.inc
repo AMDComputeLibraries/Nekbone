@@ -154,7 +154,7 @@ fi
 case $F77comp in
   *pgf*)        P="-r8 -Mpreprocess -Mfixed"
                ;;
-  *gfortran*)   P="-fdefault-real-8 -cpp -fixed-form"
+  *gfortran*)   P="-fdefault-real-8 -cpp -ffixed-form"
                ;;
   *ifort*)      P="-r8 -fpconstant -fpp -fixed"
                ;;
