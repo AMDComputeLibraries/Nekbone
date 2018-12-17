@@ -7,10 +7,10 @@
 SOURCE_ROOT="../../src"
 
 # Fortran compiler
-F77="mpif90"
+F77="x86_64-none-linux-gnu-gfortran"
 
 # C compiler
-CC="mpicc"
+CC="x86_64-none-linux-gnu-gcc"
 
 # pre-processor symbol list 
 # (set PPLIST=? to get a list of available symbols)
@@ -22,7 +22,7 @@ CC="mpicc"
 # -----------------
 
 # enable MPI (default true)
-#IFMPI="false"
+IFMPI="false"
 
 # auxilliary files to compile
 # NOTE: source files have to located in the same directory as makenek
@@ -30,10 +30,10 @@ CC="mpicc"
 #USR="foo.o"
 
 # linking flags
-USR_LFLAGS="-ta=nvidia:cc50,cc60"
+#USR_LFLAGS="-ta=nvidia:cc50,cc60"
 
 # generic compiler flags
-G="-acc -Minfo=accel -ta=nvidia:cc50,cc60"
+G="-fopenacc -foffload=-march=fiji"
 
 # optimization flags
 #OPT_FLAGS_STD=""
