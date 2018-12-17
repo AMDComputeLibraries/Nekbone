@@ -433,7 +433,7 @@ c-----------------------------------------------------------------------
       common /nekmpi/ mp
 
       parameter(lt=lx1*ly1*lz1*lelt)
-      common /nsmpi_acc/ ug(lt)
+      common /nsmpi_acc/ ug
 
       real u(lt),ug(lt)
 
