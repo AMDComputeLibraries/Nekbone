@@ -31,12 +31,13 @@ IFMPI="false"
 
 # linking flags
 #USR_LFLAGS="-ta=nvidia:cc50,cc60"
+USR_LFLAGS="-lm"
 
 # generic compiler flags
-G="-fopenacc -foffload=-march=fiji"
+G="-fopenacc -foffload=\"-march=fiji -lm\""
 
 # optimization flags
-#OPT_FLAGS_STD=""
+OPT_FLAGS_STD="-O0"
 #OPT_FLAGS_MAG=""
 
 
