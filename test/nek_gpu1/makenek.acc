@@ -34,10 +34,10 @@ IFMPI="false"
 USR_LFLAGS="-lm"
 
 # generic compiler flags
-G="-fopenacc -foffload=\"-march=fiji -lm\""
+G="-fopenacc -foffload=\"-march=gfx906 -lm\""
 
 # optimization flags
-OPT_FLAGS_STD="-O0"
+OPT_FLAGS_STD="-O3"
 #OPT_FLAGS_MAG=""
 
 
