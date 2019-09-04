@@ -26,7 +26,7 @@ c-----------------------------------------------------------------------
 
       call set_vert_box(glo_num,nx) ! Set global-to-local map
 c     call outmat_glo_num(glo_num,nx)
-    
+
 
       ntot      = nx*nx*nx*nelt   ! assumes nx=ny=nz
       call gs_setup(gs_handle,glo_num,ntot,nekcomm,mp) ! Initialize gather-scatter
@@ -54,15 +54,15 @@ c     Set up global numbering for elements in a box
       nn = nx-1  ! nn := polynomial order
 
       do e=1,nelt
-        eg = lglel(e)                              
-        call get_exyz(ex,ey,ez,eg,nelx,nely,nelz)  
+        eg = lglel(e)
+        call get_exyz(ex,ey,ez,eg,nelx,nely,nelz)
         do k=0,nn
         do j=0,nn
         do i=0,nn
-           kg = nn*(ez-1) + k                     
-           jg = nn*(ey-1) + j                     
+           kg = nn*(ez-1) + k
+           jg = nn*(ey-1) + j
            ig = nn*(ex-1) + i
-           ii = 1 + ig + jg*(nn*nelx+1) + kg*(nn*nelx+1)*(nn*nely+1) 
+           ii = 1 + ig + jg*(nn*nelx+1) + kg*(nn*nelx+1)*(nn*nely+1)
            ll = 1 + i + nx*j + nx*nx*k + nx*nx*nx*(e-1)
            glo_num(ll) = ii
         enddo
@@ -77,12 +77,12 @@ c-----------------------------------------------------------------------
       integer ex,ey,ez,eg
 
       nelxy = nelx*nely
- 
+
       ez = 1 +  (eg-1)/nelxy
       ey = mod1 (eg,nelxy)
       ey = 1 +  (ey-1)/nelx
       ex = mod1 (eg,nelx)
- 
+
       return
       end
 c-----------------------------------------------------------------------
@@ -98,7 +98,7 @@ c-----------------------------------------------------------------------
       do e=1,nelt
          call outmat_e_i8(glo_num(1,e),e,nx)
       enddo
- 
+
       return
       end
 c-----------------------------------------------------------------------
@@ -127,7 +127,7 @@ c-----------------------------------------------------------------------
       enddo
     1 format('gn:',4i5,3x,4i5)
     2 format('gn: element: ',i4)
- 
+
       return
       end
 c-----------------------------------------------------------------------
@@ -157,7 +157,7 @@ c-----------------------------------------------------------------------
       enddo
     1 format('gn:',6i5)
     2 format('gn: element: ',i4)
- 
+
       return
       end
 c-----------------------------------------------------------------------
@@ -174,7 +174,7 @@ c-----------------------------------------------------------------------
       do e=1,nelt
          call outmat_e_r(x(1,e),name5,e)
       enddo
- 
+
       return
       end
 c-----------------------------------------------------------------------
@@ -203,14 +203,14 @@ c-----------------------------------------------------------------------
       enddo
     1 format('mat: ',4f8.3,3x,4f8.3)
     2 format('mat: element: ',i4,2x,a5)
- 
+
       return
       end
 c-----------------------------------------------------------------------
 
 #ifdef _OPENACC
 c-----------------------------------------------------------------------
-      subroutine i8sort(a,ind,n) 
+      subroutine i8sort(a,ind,n)
 c     Sort routine for a = int*8, ind=int.
 c     Uses heap sort (p 231 Num. Rec., 1st Ed.)
 
@@ -265,7 +265,7 @@ c     Uses heap sort (p 231 Num. Rec., 1st Ed.)
 
 c-----------------------------------------------------------------------
       subroutine ldssum(u,ug)
-   
+
       include 'SIZE'
       include 'INPUT'
       include 'ACCNEK'
@@ -351,7 +351,7 @@ c      call gs_setup(gs_handle,glo_num,n,nekcomm,mp) ! Initialize gather-scatter
               wk(i) = abs(wk(i))
             endif
          enddo
-         
+
          ids_lgl1(0) = ip
          ids_lgl2(0) = ig
          ndssum      = ids_lgl1(0)
@@ -387,7 +387,7 @@ c            call gs_free (gs_handle)
                igl = ig
             enddo
             n_nonlocal=nnl
-           
+
 c            if ( n_nonlocal .eq. 0 ) then
 c               write(*,*) "n_nonlocal=0"
 c               return
@@ -411,7 +411,7 @@ C      Used in GPU calucation
       enddo
       ids_ptr(pcount+1) = ndssum + 1
 c
-c     Check  
+c     Check
 c      write(*,*) pcount, ids_lgl1(0), ids_lgl2(0), n_nonlocal
 c      if ( pcount .ne. ids_lgl2(0)) stop
 
@@ -487,7 +487,7 @@ c         ngv = nv + n_nonlocal  ! Number that must be copied out
 !$ACC WAIT
 !$ACC END DATA
 
-      return 
+      return
       end
 
 
@@ -497,10 +497,12 @@ c-----------------------------------------------------------------------
       include 'SIZE'
       include 'ACCNEK'
 
+
       common /nekmpi/ mp
 
       parameter(lt=lx1*ly1*lz1*lelt)
       common /nsmpi_acc/ ug(lt)
+
 
       real u(lt),ug(lt)
 
@@ -534,8 +536,10 @@ c     call nekgsync()
 c         ngv = nv + n_nonlocal  ! Number that must be copied out
 !$acc data present(u)
          call gs_op_fields(gsh_acc,ug(1),0,1,1,1,0) ! Gather-scatter operation  ! w   = QQ  w
-c         call gs_op(gsh_acc,ug(1),1,1,0) ! 1 ==> + 
+c         call gs_op(gsh_acc,ug(1),1,1,0) ! 1 ==> +
+
 !$acc end data
+
       endif
 
 !$ACC PARALLEL LOOP GANG VECTOR PRIVATE(il) async(1)
@@ -552,7 +556,7 @@ c         call gs_op(gsh_acc,ug(1),1,1,0) ! 1 ==> +
 !$ACC WAIT
 !$ACC END DATA
 
-      return 
+      return
       end
 
 #else
@@ -561,15 +565,18 @@ c-----------------------------------------------------------------------
       subroutine dssum2_acc(u)
       include 'SIZE'
       include 'TOTAL'
-      
+
       parameter(lt=lx1*ly1*lz1*lelt)
       real u(lt)
 
 c     call nekgsync()
       call adelay
+
 !$acc data present(u(1:lt))
+
       call gs_op_fields(gsh,u,0,1,1,1,0)  ! Gather-scatter operation  ! w   = QQ  w
 c      call gs_op(gsh,u,1,1,0) ! 1 ==> +
+
 !$acc end data
 
       return
