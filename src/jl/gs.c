@@ -1871,7 +1871,7 @@ void fgs_setup_pick(sint *handle, const slong id[], const sint *n,
                      fgs_info=trealloc(struct gs_data*,fgs_info,fgs_max);
   gsh=fgs_info[fgs_n]=tmalloc(struct gs_data,1);
   comm_init_check(&gsh->comm,*comm,*np);
-#ifdef _OPENACC
+#if defined(_OPENMP) || defined(_OPENACC)
 #ifdef GPUDIRECT
     if(gsh->comm.id==0) printf("   USE_GPU_DIRECT=1  \n");
 #else
@@ -1887,7 +1887,7 @@ void fgs_setup_pick(sint *handle, const slong id[], const sint *n,
 void fgs_setup(sint *handle, const slong id[], const sint *n,
                const MPI_Fint *comm, const sint *np)
 {
-#ifdef _OPENACC
+#if defined(_OPENMP) || defined(_OPENACC)
   const sint method = gs_pairwise;
 #else
   const sint method = gs_auto;
@@ -2055,7 +2055,7 @@ void fgs_fields_isend(const sint *handle,
   fgs_check_parms(*handle,*dom,*op,"gs_op_fields",__LINE__);
   if(*n<0) return;
 
-#if defined NEW_GS_LOOPS || defined _OPENACC
+#if defined NEW_GS_LOOPS || defined _OPENMP || defined _OPENACC
   cgs_many_isend(u,*n,
 	   fgs_dom[*dom],(gs_op_t)(*op-1),
 	   *transpose!=0, fgs_info[*handle],NULL);
@@ -2078,7 +2078,7 @@ void fgs_fields_irecv(const sint *handle,
   size_t offset;
   uint i;
   void **p;
-#if defined NEW_GS_LOOPS || defined _OPENACC
+#if defined NEW_GS_LOOPS || defined _OPENMP || defined _OPENACC
   cgs_many_irecv(u,*n,
 	   fgs_dom[*dom],(gs_op_t)(*op-1),
 	   *transpose!=0, fgs_info[*handle],NULL);
@@ -2105,7 +2105,7 @@ void fgs_fields_wait(const sint *handle,
   fgs_check_parms(*handle,*dom,*op,"gs_op_fields",__LINE__);
   if(*n<0) return;
 
-#if defined NEW_GS_LOOPS || defined _OPENACC
+#if defined NEW_GS_LOOPS || defined _OPENMP || defined _OPENACC
   cgs_many_wait(u,*n,
 	   fgs_dom[*dom],(gs_op_t)(*op-1),
 	   *transpose!=0, fgs_info[*handle],NULL);
@@ -2133,7 +2133,7 @@ void fgs_fields(const sint *handle,
   fgs_check_parms(*handle,*dom,*op,"gs_op_fields",__LINE__);
   if(*n<0) return;
 
-#if defined NEW_GS_LOOPS || defined _OPENACC
+#if defined NEW_GS_LOOPS || defined _OPENMP || defined _OPENACC
   cgs_many(u,*n,
 	   fgs_dom[*dom],(gs_op_t)(*op-1),
 	   *transpose!=0, fgs_info[*handle],NULL);

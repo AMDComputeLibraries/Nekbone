@@ -367,7 +367,7 @@ c  1  format(7i7,a8)
       end
 c-----------------------------------------------------------------------
 
-#ifdef _OPENACC
+#if defined(_OPENMP) || defined(_OPENACC)
 
 c-----------------------------------------------------------------------
       subroutine ax_acc(w,u,gxyz,ur,us,ut,wk,n) ! Matrix-vector product: w=A*u

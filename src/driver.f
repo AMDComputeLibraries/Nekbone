@@ -23,7 +23,7 @@ c-----------------------------------------------------------------------
       integer npx,npy,npz      ! processor decomp
       integer mx ,my ,mz       ! element decomp
 
-#ifdef _OPENACC
+#if defined(_OPENMP) || defined(_OPENACC)
       include 'ACCNEK'
       common /TEMP0_ACC/ ur(lx1,lx1,lx1,lelt)
      $     ,             us(lx1,lx1,lx1,lelt)
@@ -49,7 +49,7 @@ c     call platform_timer(iverbose)   ! iverbose=0 or 1
 
 c     SET UP and RUN NEKBONE
 
-#ifdef _OPENACC
+#if defined(_OPENMP) || defined(_OPENACC)
 
 !$ACC  DATA CREATE(x,f,r,w,p,z,c)
 !$ACC&      CREATE(ur,us,ut,wk,ug)
@@ -568,7 +568,7 @@ c----------------------------------------------------------------------
       end
 c-----------------------------------------------------------------------
 
-#ifdef _OPENACC
+#if defined(_OPENMP) || defined(_OPENACC)
 
 c-----------------------------------------------------------------------
       subroutine set_multiplicity_acc (c)       ! Inverse of counting matrix
