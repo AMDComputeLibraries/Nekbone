@@ -439,6 +439,10 @@ c-----------------------------------------------------------------------
 
       integer ndssum, nglobl
 
+!$omp declare target(/dimn/)
+!$omp declare target(/nsmpi_acc/)
+!$omp declare target(/comm_handles_acc/)
+
 c     call nekgsync()
       call adelay
 

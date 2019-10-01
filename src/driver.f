@@ -33,6 +33,8 @@ c-----------------------------------------------------------------------
 
       common /nsmpi_acc/ ug(lt)
       real ug
+
+!$omp declare target(/comm_handles_acc/)
 #endif
 
       call iniproc(mpi_comm_world)    ! has nekmpi common block
@@ -575,6 +577,8 @@ c-----------------------------------------------------------------------
       include 'SIZE'
       include 'TOTAL'
       include 'ACCNEK'
+
+!$omp declare target(/comm_handles_acc/)
 
       real c(lx1*ly1*lz1*lelt)
 
