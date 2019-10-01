@@ -455,6 +455,7 @@ c     call nekgsync()
 !$ACC& PRESENT(ids_lgl1)
 !$ACC& PRESENT(ug(1:nglobl))
 
+!$omp target teams distribute parallel do simd private(il) collapse(1)
 !$ACC PARALLEL LOOP COLLAPSE(1) GANG VECTOR PRIVATE(il)
       do i = 1,nglobl
          ug(i) = 0.0
@@ -465,6 +466,8 @@ c     call nekgsync()
             ug(i) = ug(i) + u(il)
          enddo
       enddo
+
+!$omp end target teams distribute parallel do simd
 !$ACC END PARALLEL LOOP
 
       if (n_nonlocal .gt. 1) then
@@ -477,6 +480,7 @@ c         ngv = nv + n_nonlocal  ! Number that must be copied out
 !$ACC UPDATE DEVICE(ug(1:n_nonlocal)) async(1)
       endif
 
+!$omp target teams distribute parallel do simd private(il)
 !$ACC PARALLEL LOOP GANG VECTOR PRIVATE(il) async(1)
       do i = 1,nglobl
         ! local Q
@@ -487,6 +491,7 @@ c         ngv = nv + n_nonlocal  ! Number that must be copied out
         enddo
       enddo
 !$ACC END PARALLEL LOOP
+!$omp end target teams distribute parallel do simd
 
 !$ACC WAIT
 !$ACC END DATA

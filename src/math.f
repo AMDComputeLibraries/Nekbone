@@ -1390,10 +1390,12 @@ c-----------------------------------------------------------------------
 
 !$ACC DATA PRESENT(A(1:n))
 !$ACC PARALLEL LOOP
+!$omp target teams distribute parallel do simd
       DO 100 I = 1, N
  100     A(I ) = 0.0
 !$ACC END PARALLEL LOOP
 !$ACC END DATA
+!$omp end target teams distribute parallel do simd
 
       return
       END
@@ -1404,10 +1406,12 @@ c-----------------------------------------------------------------------
 
 !$ACC DATA PRESENT(A(1:n))
 !$ACC PARALLEL LOOP
+!$omp target teams distribute parallel do simd
       DO 100 I = 1, N
  100     A(I ) = 1.0
 !$ACC END PARALLEL LOOP
 !$ACC END DATA
+!$omp end target teams distribute parallel do simd
 
       return
       END
@@ -1418,11 +1422,13 @@ c-----------------------------------------------------------------------
 
 !$ACC DATA PRESENT(a(1:n),b(1:n))
 !$ACC PARALLEL LOOP
+!$omp target teams distribute parallel do simd
       do i=1,n
          a(i)=b(i)
       enddo
 !$ACC END PARALLEL LOOP
 !$ACC END DATA
+!$omp end target teams distribute parallel do simd
 
       return
       end
@@ -1438,11 +1444,15 @@ C
       tmp = 0.0
 !$ACC DATA PRESENT(a(1:n),b(1:n),mult(1:n))
 !$ACC PARALLEL LOOP REDUCTION(+:tmp)
+!$omp target teams distribute parallel do simd map(tofrom:tmp)
+!$omp& reduction(+:tmp)
       do 10 i=1,n
          tmp = tmp + a(i)*b(i)*mult(i)
  10   continue
 !$ACC END PARALLEL LOOP
 !$ACC END DATA
+!$omp end target teams distribute parallel do simd
+
       call gop(tmp,work,'+  ',1)
       glsc3_acc = tmp
       return
@@ -1454,11 +1464,13 @@ c-----------------------------------------------------------------------
 
 !$ACC DATA PRESENT(a(1:n),b(1:n))
 !$ACC PARALLEL LOOP
+!$omp target teams distribute parallel do simd
       DO 100 I=1,N
         A(I)=C1*A(I)+B(I)
  100  CONTINUE
 !$ACC END PARALLEL LOOP
 !$ACC END DATA
+!$omp end target teams distribute parallel do simd
       return
       END
 
@@ -1468,12 +1480,14 @@ c-----------------------------------------------------------------------
 
 !$ACC DATA PRESENT(a(1:n),b(1:n))
 !$ACC PARALLEL LOOP
+!$omp target teams distribute parallel do simd
       DO 100 I=1,N
         A(I)=A(I)+C1*B(I)
  100  CONTINUE
 !$ACC END PARALLEL LOOP
 !$ACC END DATA
- 
+!$omp end target teams distribute parallel do simd
+
       return
       END
 
@@ -1485,11 +1499,14 @@ c-----------------------------------------------------------------------
 
 !$ACC DATA PRESENT(VEC(1:n))
 !$ACC PARALLEL LOOP REDUCTION(+:SUM)
+!$omp target teams distribute parallel do simd
+!$omp& map(tofrom:sum) reduction(+:sum)
       DO 100 I=1,N
          SUM=SUM+VEC(I)
  100  CONTINUE
 !$ACC END PARALLEL LOOP
 !$ACC END DATA
+!$omp end target teams distribute parallel do simd
 
       VLSUM_ACC = SUM
       return
@@ -1504,11 +1521,13 @@ c-----------------------------------------------------------------------
 !$ACC DATA PRESENT(a,b)
 
 !$ACC PARALLEL LOOP
+!$omp target teams distribute parallel do simd
       do i=1,n
          a(i)=a(i)*b(i)
       enddo
 !$ACC END PARALLEL LOOP
 !$ACC END DATA
+!$omp end target teams distribute parallel do simd
       return
       end
 

@@ -591,9 +591,11 @@ c      call gs_op(gsh,c,1,1,0)  ! Gather-scatter operation  ! w   = QQ  w
       call dssum_acc(c)   ! Gather-scatter operation  ! w   = QQ  w
 
 !$ACC PARALLEL LOOP
+!$omp target teams distribute parallel do simd
       do i=1,n
          c(i) = 1./c(i)
       enddo
+!$omp end target teams distribute parallel do simd
 
 !$ACC END DATA
 
@@ -606,11 +608,15 @@ c--------------------------------------------------------------
 
 !$ACC DATA PRESENT(f,c)
 !$ACC PARALLEL LOOP
+
+!$omp target teams distribute parallel do simd
       do i=1,n
          arg  = i*i
          arg  = cos(arg)
          f(i) = sin(arg)
       enddo
+!$omp end target teams distribute parallel do simd
+
       call dssum_acc(f)
 
       call col2_acc (f,c,n)

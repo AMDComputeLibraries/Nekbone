@@ -641,10 +641,12 @@ c-----------------------------------------------------------------------
         j=pmask(0)
 
 !$ACC PARALLEL LOOP
+!$omp target teams distribute parallel do simd
         do i = 1,j
            k = pmask(i)
            w(k)=0.0
         enddo
+!$omp end target teams distribute parallel do simd
 
       else
          write(*,*) "OpenACC version is not implemented yet"
