@@ -5,6 +5,9 @@
 #ifdef _OPENACC
 #include <openacc.h>
 #endif
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include "c99.h"
 #include "name.h"
 #include "fail.h"
@@ -495,6 +498,7 @@ static void pw_exec(
 
   double* t = data;
 
+#pragma omp target update from(sendbuf[0:unit_size*bufSize/2]) if(acc)
 #pragma acc update host(sendbuf[0:unit_size*bufSize/2]) if(acc)
 
   /* post sends */
@@ -502,6 +506,7 @@ static void pw_exec(
                 &pwd->req[pwd->comm[recv].n]);
   comm_wait(pwd->req,pwd->comm[0].n+pwd->comm[1].n);
 
+#pragma omp target update to(buf[0:unit_size*bufSize/2]) if(acc)
 #pragma acc update device(buf[0:unit_size*bufSize/2]) if(acc)
 
 //#pragma update device(pwd->map[recv],pwd->mapf[recv])
@@ -563,6 +568,7 @@ static void pw_exec_isend(
   scatter_to_buf[mode](sendbuf,data,vn,pwd->map[send],dom,dstride,pwd->mf_nt[send],
                        pwd->mapf[send],pwd->mf_size[send],acc);
 
+#pragma omp target update from(sendbuf[0:unit_size*bufSize/2]) if(acc)
 #pragma acc update host(sendbuf[0:unit_size*bufSize/2]) if(acc)
   /* post sends */
   pw_exec_sends(sendbuf,unit_size,comm,&pwd->comm[send],
@@ -586,6 +592,7 @@ static void pw_exec_wait(
 
   comm_wait(pwd->req,pwd->comm[0].n+pwd->comm[1].n);
 
+#pragma omp target update to(buf[0:unit_size*bufSize/2]) if(acc)
 #pragma acc update device(buf[0:unit_size*bufSize/2]) if(acc)
 
 //#pragma update device(pwd->map[recv],pwd->mapf[recv])
@@ -690,6 +697,7 @@ static void pw_free(struct pw_data *data)
 
   pw_comm_free(&data->comm[0]);
   pw_comm_free(&data->comm[1]);
+#pragma omp target exit data map(release:map0,map1)
 #pragma acc exit data delete(map0,map1)
   free((uint*)data->map[0]);
   free((uint*)data->map[1]);
@@ -775,11 +783,13 @@ static void cr_exec(
         gather_buf_to_buf [mode](sendbuf,buf_old,vn,stage[k].gather_map ,dom,op,dstride,
                                  stage[k].g_nt,stage[k].gather_mapf,stage[k].g_size,acc);
     //Need to update gather vec and scatter vec!
+#pragma omp target update from(buf[0:unit_size*bufSize]) if(acc)
 #pragma acc update host(buf[0:unit_size*bufSize]) if(acc)
     comm_isend(&req[0],comm,sendbuf,unit_size*stage[k].size_s,
                stage[k].p1, comm->np+k);
 
     comm_wait(&req[0],1+stage[k].nrecvn);
+#pragma omp target update to(buf[0:unit_size*bufSize]) if(acc)
 #pragma acc update device(buf[0:unit_size*bufSize]) if(acc)
     { char *t = buf_old; buf_old=buf_new; buf_new=t; }
   }
@@ -866,6 +876,7 @@ static void cr_exec_isend(
         gather_buf_to_buf [mode](sendbuf,buf_old,vn,stage[k].gather_map ,dom,op,dstride,
                                  stage[k].g_nt,stage[k].gather_mapf,stage[k].g_size,acc);
     //Need to update gather vec and scatter vec!
+#pragma omp target update from(buf[0:unit_size*bufSize]) if(acc)
 #pragma acc update host(buf[0:unit_size*bufSize]) if(acc)
 
     comm_isend(&req[0],comm,sendbuf,unit_size*stage[k].size_s,
@@ -909,6 +920,7 @@ static void cr_exec_wait(
 
     comm_wait(&(crd->req[k]),1+stage[k].nrecvn);
 
+#pragma omp target update to(buf[0:unit_size*bufSize]) if(acc)
 #pragma acc update device(buf[0:unit_size*bufSize]) if(acc)
     { char *t = buf_old; buf_old=buf_new; buf_new=t; }
   }
@@ -1197,10 +1209,12 @@ static void cr_free_stage_maps(struct cr_stage *stage, unsigned kmax)
   for(k=0; k<kmax; ++k) {
     map = stage->scatter_map;
     mapf = stage->scatter_mapf;
+#pragma omp target exit data map(release:map,mapf)
 #pragma acc exit data delete(map,mapf)
     if(k!=0) {
       map = stage->gather_map;
       mapf = stage->gather_mapf;
+#pragma omp target exit data map(release:map,mapf)
 #pragma acc exit data delete(map,mapf)
     }
     free((uint*)stage->scatter_map);
@@ -1209,9 +1223,11 @@ static void cr_free_stage_maps(struct cr_stage *stage, unsigned kmax)
   }
   map = stage->scatter_map;
   mapf = stage->scatter_mapf;
+#pragma omp target exit data map(release:map,mapf)
 #pragma acc exit data delete(map,mapf)
   map = stage->gather_map;
   mapf = stage->gather_mapf;
+#pragma omp target exit data map(release:map,mapf)
 #pragma acc exit data delete(map,mapf)
   free((uint*)stage->scatter_map);
   free((uint*)stage->scatter_mapf);
@@ -1274,9 +1290,11 @@ static void allreduce_exec(
 		       ard->mt_size[transpose],acc);
 
   /* all reduce */
+#pragma omp target update from(buf[0:vn*unit_size*bufSize]) if(acc)
 #pragma acc update host(buf[0:vn*unit_size*bufSize]) if(acc)
   comm_allreduce(comm,dom,op, buf,gvn, ardbuf);
     /* buffer -> user array */
+#pragma omp target update to(buf[0:vn*unit_size*bufSize]) if(acc)
 #pragma acc update device(buf[0:vn*unit_size*bufSize]) if(acc)
   scatter_from_buf[mode](data,buf,vn,ard->map_from_buf[transpose],dom,dstride,
                          ard->mf_nt[transpose],ard->map_from_buf_f[transpose],
@@ -1428,6 +1446,7 @@ static void auto_setup(struct gs_remote *r, struct gs_topology *top,
 
 void print_acc(double *a,int n){
   int i;
+#pragma omp target update from(a[0:n])
 #pragma acc update host(a[0:n])
   for(i=0;i<n;i++){
     printf("%f ",a[i]);
@@ -1438,6 +1457,7 @@ void print_acc(double *a,int n){
 
 void print_acc_int(int *a,int n){
   int i;
+#pragma omp target update from(a[0:n])
 #pragma acc update host(a[0:n])
   for(i=0;i<n;i++){
     printf("%d ",a[i]);
@@ -1478,9 +1498,11 @@ static void gs_aux(
     { &gs_init, &gs_init_vec, &gs_init_many, &init_noop };
   if(!buf) buf = &static_buffer;
   bufPtr = buf->ptr;
+#pragma omp target exit data map(release:bufPtr)
 #pragma acc exit data delete(bufPtr)
   buffer_reserve(buf,vn*gs_dom_size[dom]*gsh->r.buffer_size);
   bufPtr = buf->ptr;
+#pragma omp target enter data map(to:bufPtr[0:vn*gs_dom_size[dom]*gsh->r.buffer_size])
 #pragma acc enter data create(bufPtr[0:vn*gs_dom_size[dom]*gsh->r.buffer_size])
   acc = 0;
 #ifdef _OPENACC
@@ -1488,6 +1510,14 @@ static void gs_aux(
     acc = 1;
   }
 #endif
+  // There's a different API for checking the presence of a pointer
+  // on the device. Here, the second argument is the device number.
+  // In OpenACC, the second argument is the size in byte of the data.
+#ifdef _OPENMP
+  if(omp_target_is_present(u,0))
+    acc = 1;
+#endif
+
   local_gather [mode](u,u,vn,gsh->map_local[0^transpose],dom,op,gsh->dstride,
                       gsh->mf_nt[0^transpose],gsh->map_localf[0^transpose],
 		      gsh->m_size[0^transpose],acc);
@@ -1519,15 +1549,24 @@ static void gs_aux_irecv(
     { &gs_init, &gs_init_vec, &gs_init_many, &init_noop };
   if(!buf) buf = &static_buffer;
   bufPtr = buf->ptr;
+#pragma omp target exit data map(release:bufPtr)
 #pragma acc exit data delete(bufPtr)
   buffer_reserve(buf,vn*gs_dom_size[dom]*gsh->r.buffer_size);
   bufPtr = buf->ptr;
+#pragma omp target enter data map(to:bufPtr[0:vn*gs_dom_size[dom]*gsh->r.buffer_size])
 #pragma acc enter data create(bufPtr[0:vn*gs_dom_size[dom]*gsh->r.buffer_size])
   acc = 0;
 #ifdef _OPENACC
   if(acc_is_present(u,1)) {
     acc = 1;
   }
+#endif
+  // There's a different API for checking the presence of a pointer
+  // on the device. Here, the second argument is the device number.
+  // In OpenACC, the second argument is the size in byte of the data.
+#ifdef _OPENMP
+  if(omp_target_is_present(u,0))
+    acc = 1;
 #endif
 
   gsh->r.exec_irecv(u,mode,vn,dom,op,transpose,gsh->r.data,&gsh->comm,buf->ptr,gsh->dstride,acc,gsh->r.buffer_size);
@@ -1545,6 +1584,13 @@ static void gs_aux_isend(
   if(acc_is_present(u,1)) {
     acc = 1;
   }
+#endif
+  // There's a different API for checking the presence of a pointer
+  // on the device. Here, the second argument is the device number.
+  // In OpenACC, the second argument is the size in byte of the data.
+#ifdef _OPENMP
+  if(omp_target_is_present(u,0))
+    acc = 1;
 #endif
 
   static gs_scatter_fun *const local_scatter[] =
@@ -1575,6 +1621,13 @@ static void gs_aux_wait(
   if(acc_is_present(u,1)) {
     acc = 1;
   }
+#endif
+  // There's a different API for checking the presence of a pointer
+  // on the device. Here, the second argument is the device number.
+  // In OpenACC, the second argument is the size in byte of the data.
+#ifdef _OPENMP
+  if(omp_target_is_present(u,0))
+    acc = 1;
 #endif
 
   static gs_scatter_fun *const local_scatter[] =
@@ -1739,6 +1792,7 @@ void gs_free(struct gs_data *gsh)
   comm_free(&gsh->comm);
   const uint *map_local0 = gsh->map_local[0],*map_local1 = gsh->map_local[1],*flagged_primaries = gsh->flagged_primaries;
 
+#pragma omp target exit data map(release:map_local0,map_local1,flagged_primaries)
 #pragma acc exit data delete(map_local0,map_local1,flagged_primaries)
 
   free((uint*)gsh->map_local[0]), free((uint*)gsh->map_local[1]);
@@ -1777,6 +1831,7 @@ void gs_flatmap_setup(const uint *map, int **mapf, int *mf_nt, int *m_size)
       *(*mapf+k*2+1) = j-i-1;
   }
   int *mapf2 = *mapf;
+#pragma omp target enter data map(to:map[0:*m_size],mapf2[0:2*mf_temp])
 #pragma acc enter data pcopyin(map[0:*m_size],mapf2[0:2*mf_temp])
 
   return;

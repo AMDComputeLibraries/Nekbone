@@ -457,6 +457,10 @@ c-----------------------------------------------------------------------
 c ifndef _CUDA
             
 !$ACC PARALLEL LOOP COLLAPSE(4) GANG WORKER VECTOR PRIVATE(wr,ws,wt)
+
+!$omp target teams distribute parallel do simd
+!$omp& private(wr,ws,wt) collapse(4)
+
 !DIR NOBLOCKING
       do e = 1,nelt
          do k=1,nz1
@@ -485,8 +489,11 @@ c ifndef _CUDA
          enddo
       enddo
 !$ACC END PARALLEL LOOP
+!$omp end target teams distribute parallel do simd
 
-!$ACC PARALLEL LOOP COLLAPSE(4) GANG WORKER VECTOR 
+
+!$ACC PARALLEL LOOP COLLAPSE(4) GANG WORKER VECTOR
+!$omp target teams distribute parallel do simd collapse(4)
       do e=1,nelt
          do k=1,nz1
          do j=1,ny1
@@ -503,6 +510,7 @@ c ifndef _CUDA
          enddo
       enddo
 !$ACC END PARALLEL LOOP
+!$omp end target teams distribute parallel do simd
 
 #endif
 c endif _CUDA
@@ -570,10 +578,13 @@ c     set machine tolerances
       rtz1=1.0
 
 !$ACC DATA PRESENT(x,g,c,r,w,p,z,ur,us,ut,wk)
+
       call copy(r,f,n)
       call maskit (r,cmask,nx1,ny1,nz1) ! Zero out Dirichlet conditions
 
 !$ACC UPDATE DEVICE(r,cmask,c,p)
+!$omp target update to(r,cmask,c,p)
+
       call rzero_acc(x,n)
 
       rnorm = sqrt(glsc3_acc(r,c,r,n))

@@ -57,6 +57,11 @@ c     SET UP and RUN NEKBONE
 !$ACC&      CREATE(ur,us,ut,wk,ug)
 !$ACC&      CREATE(g,dxm1,dxtm1,cmask)
 !$ACC&      CREATE(ids_lgl1,ids_lgl2,ids_ptr)
+
+!$omp target data map(alloc: x,f,r,w,p,z,c,
+!$omp&                       ur,us,ut,wk,ug,
+!$omp&                       g,dxm1,dxtm1,cmask,
+!$omp&                       ids_lgl1,ids_lgl2,ids_ptr)
       do nx1=nx0,nxN,nxD
          call init_dim
          do nelt=iel0,ielN,ielD
@@ -66,6 +71,7 @@ c     SET UP and RUN NEKBONE
 #else
            call proxy_setupds_acc     (gsh,nx1) ! Has nekmpi common block
 !$ACC UPDATE DEVICE(ids_lgl1,ids_lgl2,ids_ptr)
+!$omp target update to(ids_lgl1,ids_lgl2,ids_ptr)
 #endif
 
            call set_multiplicity   (c)       ! Inverse of counting matrix
@@ -73,6 +79,7 @@ c     SET UP and RUN NEKBONE
            call proxy_setup(ah,bh,ch,dh,zh,wh,g)
            call h1mg_setup
 !$ACC UPDATE DEVICE(g,dxm1,dxtm1)
+!$omp target update to(g,dxm1,dxtm1)
            niter = 100
            n     = nx1*ny1*nz1*nelt
 
@@ -96,6 +103,7 @@ c     SET UP and RUN NEKBONE
          enddo
       enddo
 !$ACC END DATA
+!$omp end target data
 
 #else
       do nx1=nx0,nxN,nxD
@@ -161,12 +169,14 @@ c        arg  = 1.e9*(i*i) ! trouble  w/ certain compilers
 
 #ifdef GPUDIRECT
 !$acc update device(f)
+!$omp target update to(f)
 #endif
 
       call dssum(f)
 
 #ifdef GPUDIRECT
 !$acc update host(f)
+!$omp target update from(f)
 #endif
       call col2 (f,c,n)
 
@@ -360,12 +370,14 @@ c-----------------------------------------------------------------------
 
 #ifdef GPUDIRECT
 !$ACC UPDATE DEVICE(C)
+!$omp target update to(C)
 #endif
 
       call gs_op(gsh,c,1,1,0)  ! Gather-scatter operation  ! w   = QQ  w
 
 #ifdef GPUDIRECT
 !$ACC UPDATE HOST(C)
+!$omp target update from(C)
 #endif
 
       do i=1,n
