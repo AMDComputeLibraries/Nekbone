@@ -12,10 +12,10 @@ IFNEKDLAY:=
 IFMGRID:=
 F77:=flang
 CC:=clang
-P:=-r8 -i8 -cpp -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900
+P:=-r8 -i8 -cpp -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU)
 PPPO=
 PPS= PTRSIZE8 LONGINT8 UNDERSCORE GLOBAL_LONG_LONG
-G:=-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900
+G:=-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU)
 OPT_FLAGS_STD=
 USR:=
 USR_LFLAGS:=-lm
