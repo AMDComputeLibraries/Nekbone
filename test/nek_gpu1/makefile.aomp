@@ -106,7 +106,7 @@ objdir:
 	@mkdir $(OBJDIR) 2>/dev/null; cat /dev/null 
 
 nekbone: 	objdir $(NOBJS0_bone)
-	$(F77) -o ${BINNAME} $G $(NOBJS0_bone) $(lFLAGS)
+	$(F77) -O3 -o ${BINNAME} $G $(NOBJS0_bone) $(lFLAGS)
 	@if test -f ${BINNAME}; then \
 	echo "#############################################################"; \
 	echo "#                  Compilation successful!                  #"; \
