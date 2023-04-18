@@ -12,10 +12,16 @@ IFNEKDLAY:=
 IFMGRID:=
 F77:=flang
 CC:=clang
-P:=-r8 -i8 -cpp ${G}
+ifeq ($(F77),flang-new)
+    P:=-fdefault-real-8 -fdefault-integer-8 -cpp ${G}
+    G_OPT:=-ffast-math
+else
+    P:=-r8 -i8 -cpp ${G}
+    G_OPT:=-ffast-math -fopenmp-target-fast
+endif
+
 PPPO=
 PPS= PTRSIZE8 LONGINT8 UNDERSCORE GLOBAL_LONG_LONG
-G_OPT:=-ffast-math -fopenmp-target-fast
 G:=-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU) ${G_OPT}
 OPT_FLAGS_STD=
 USR:=
