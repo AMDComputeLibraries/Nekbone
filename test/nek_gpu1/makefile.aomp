@@ -22,7 +22,7 @@ endif
 
 PPPO=
 PPS= PTRSIZE8 LONGINT8 UNDERSCORE GLOBAL_LONG_LONG
-G:=-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU) ${G_OPT}
+G:=-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU) ${G_OPT} -fPIC
 OPT_FLAGS_STD=
 USR:=
 USR_LFLAGS:=-lm
