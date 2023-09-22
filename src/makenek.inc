@@ -154,7 +154,7 @@ fi
 case $F77comp in
   *pgf*)        P="-r8 -Mpreprocess -Mfixed"
                ;;
-  *flang-new*)  P="-fdefault-double-8 -fdefault-real-8 -fdefault-integer-8 -cpp -ffixed-form"
+  *flang-new*)  P="-fdefault-double-8 -fdefault-real-8 -fdefault-integer-8 -cpp -ffixed-form -fallow-argument-mismatch"
 	       ;;
   *flang*)      P="-r8 -i8 -cpp -Mfixed"
                ;;
