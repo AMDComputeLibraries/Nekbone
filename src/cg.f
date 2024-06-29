@@ -379,7 +379,6 @@ c-----------------------------------------------------------------------
       include 'SIZE'
       include 'TOTAL'
 
-!$omp declare target (/dxyz/)
 
 #ifdef _CUDA
       interface

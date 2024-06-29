@@ -13,4 +13,5 @@ C     Dimension file to be included
 
       common /dimn/ nelx,nely,nelz,nelt       ! local element common block
      $            , nx1,ny1,nz1,ndim,nfield,nid
+      !$omp declare target(/dimn/)
 
