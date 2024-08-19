@@ -7,4 +7,5 @@ C
      $                         ,ids_ptr(ltot),gsh_acc
 
       integer                   ids_lgl1,ids_lgl2,ids_ptr,gsh_acc
+      !$omp declare target(/comm_handles_acc/)
 
