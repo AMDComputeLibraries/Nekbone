@@ -50,12 +50,9 @@ static void gather_array_##T##_##OP( \
 {                                                             \
   const T e = gs_identity_##T[op];                            \
   int i; \
-  if (acc) { \
   _Pragma("acc parallel loop present(out[0]) if(acc)")\
-  _Pragma("omp target teams distribute parallel for") \
+  _Pragma("omp target teams distribute parallel for if(acc)") \
   for(i=0;i<n;i++) out[i]=e;                                       \
-  } else { \
-  for(i=0;i<n;i++) out[i]=e; } \
 }
 
 #define DEFINE_PROCS(T) \
@@ -80,10 +77,9 @@ static void gather_##T##_##OP( \
   uint i,j,k;      \
   int dstride_in=1; \
   if(in_stride==1) dstride_in=dstride; \
-  if (acc) { \
   for(k=0;k<vn;++k) {                                                        \
 _Pragma("acc parallel loop gang vector present(out[0],in[0],mapf[0:2*mf_nt],map[0:m_size]) async(k+1) if(acc)") \
-_Pragma("omp target teams distribute parallel for simd")  \
+_Pragma("omp target teams distribute parallel for simd if(acc)")  \
     for(i=0;i<mf_nt;i++) {                                                   \
       T t=out[map[mapf[i*2]]+k*dstride];                                     \
 _Pragma("acc loop seq")						\
@@ -94,17 +90,6 @@ _Pragma("acc loop seq")						\
     }                                                                        \
   }                                                                          \
 _Pragma("acc wait")							\
-  } else { \
-  for(k=0;k<vn;++k) {                                                        \
-    for(i=0;i<mf_nt;i++) {                                                   \
-      T t=out[map[mapf[i*2]]+k*dstride];                                     \
-      for(j=0;j<mapf[i*2+1];j++) {                                           \
-        GS_DO_##OP(t,in[in_stride*map[mapf[i*2]+j+1]+k*dstride_in]);         \
-      }                                                                      \
-      out[map[mapf[i*2]]+k*dstride] = t;                                 \
-    }                                                                        \
-  }                                                                          \
-  }                                                                          \
 }
 
 /*------------------------------------------------------------------------------
@@ -120,10 +105,9 @@ static void scatter_##T( \
   uint i,j,k,dstride_in=1,dstride_out=1;                           \
   if(in_stride==1)  dstride_in=dstride;                            \
   if(out_stride==1) dstride_out=dstride;                           \
-  if (acc) { \
   for(k=0;k<vn;++k) {                                              \
 _Pragma("acc parallel loop gang vector present(map[0:m_size],in[0],mapf[0:2*mf_nt],out[0]) async(k+1) if(acc)") \
-_Pragma("omp target teams distribute parallel for simd") \
+_Pragma("omp target teams distribute parallel for simd if(acc)") \
     for(i=0;i<mf_nt;i++) {                                         \
       T t=in[in_stride*map[mapf[i*2]]+k*dstride_in];       \
 _Pragma("acc loop seq")					   \
@@ -133,16 +117,6 @@ _Pragma("acc loop seq")					   \
     }                                                              \
   }                                                                \
 _Pragma("acc wait")						   \
-  } else { \
-  for(k=0;k<vn;++k) {                                              \
-    for(i=0;i<mf_nt;i++) {                                         \
-      T t=in[in_stride*map[mapf[i*2]]+k*dstride_in];       \
-      for(j=0;j<mapf[i*2+1];j++) {                                 \
-        out[out_stride*map[mapf[i*2]+j+1]+k*dstride_out] = t;          \
-      }                                                            \
-    }                                                              \
-  }                                                                \
-  }                                                                          \
 }
 
 /*------------------------------------------------------------------------------
@@ -153,10 +127,9 @@ _Pragma("acc wait")						   \
 		       int *mapf, int vn, int m_size, int acc)			\
 {                                                       \
   int i,j,k; const T e = gs_identity_##T[op];		\
-  if (acc) { \
   for(k=0;k<vn;++k) {\
 _Pragma("acc parallel loop gang vector present(map[0:m_size],mapf[0:2*mf_nt],out[0]) async(k+1) if(acc)")\
-_Pragma("omp target teams distribute parallel for simd")  \
+_Pragma("omp target teams distribute parallel for simd if(acc)")  \
     for(i=0;i<mf_nt;i++){\
 _Pragma("acc loop seq")\
       for(j=0;j<mapf[i*2+1];j++) {\
@@ -165,15 +138,6 @@ _Pragma("acc loop seq")\
     }\
   }\
 _Pragma("acc wait")\
-  } else { \
-  for(k=0;k<vn;++k) {\
-    for(i=0;i<mf_nt;i++){\
-      for(j=0;j<mapf[i*2+1];j++) {\
-        out[map[mapf[i*2+1]]+k*dstride] = e;\
-      }\
-    }\
-  }\
-  }\
 }
 
 #define DEFINE_PROCS(T) \
