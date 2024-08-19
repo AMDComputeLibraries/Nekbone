@@ -379,8 +379,6 @@ c-----------------------------------------------------------------------
       include 'SIZE'
       include 'TOTAL'
 
-!$omp declare target (/dxyz/)
-
 #ifdef _CUDA
       interface
       attributes(global) subroutine ax_cuf2(w,u,ur,us,ut,
