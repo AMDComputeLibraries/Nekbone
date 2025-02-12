@@ -12,17 +12,17 @@ IFNEKDLAY:=
 IFMGRID:=
 F77:=flang
 CC:=clang
-ifeq ($(F77),flang-new)
-    P:=-fdefault-real-8 -fdefault-integer-8 -cpp ${G}
-    G_OPT:=-ffast-math
-else
+ifeq ($(F77),flang-classic)
     P:=-r8 -i8 -cpp ${G}
     G_OPT:=-ffast-math -fopenmp-target-fast
+else
+    P:=-fdefault-real-8 -fdefault-integer-8 -cpp ${G}
+    G_OPT:=-ffast-math
 endif
 
 PPPO=
 PPS= PTRSIZE8 LONGINT8 UNDERSCORE GLOBAL_LONG_LONG
-G:=-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU) ${G_OPT}
+G:=-fopenmp --offload-arch=$(AOMP_GPU) ${G_OPT}
 OPT_FLAGS_STD=
 USR:=
 USR_LFLAGS:=-lm
@@ -113,7 +113,7 @@ objdir:
 	@mkdir $(OBJDIR) 2>/dev/null; cat /dev/null 
 
 nekbone: 	objdir $(NOBJS0_bone)
-	$(F77) -O3 -fdisable-host-devmem -o ${BINNAME} $G $(NOBJS0_bone) $(lFLAGS)
+	$(F77) -O3  -o ${BINNAME} $G $(NOBJS0_bone) $(lFLAGS)
 	@if test -f ${BINNAME}; then \
 	echo "#############################################################"; \
 	echo "#                  Compilation successful!                  #"; \
